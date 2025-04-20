@@ -3,6 +3,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import Signin from '../Logs/Signin';
 import App from '../../App';
 import CreateEvent from '../Assests/CreateEvent';
+import Signup from '../Logs/Signup';
 
 const router = createBrowserRouter([
     {
@@ -18,6 +19,10 @@ const router = createBrowserRouter([
     {
         path:'/event',
         element:<CreateEvent></CreateEvent>
+    },
+     {
+        path:'/signup',
+        element:<Signup></Signup>
     }
 ])
 
