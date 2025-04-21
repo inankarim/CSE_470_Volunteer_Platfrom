@@ -7,6 +7,7 @@ const Navbar = () => {
                     <li className='ml-2'><Link to='/signin'>SignIn</Link></li>
                     <li className='ml-2'><Link>Volunteer</Link> </li>
                     <li className='ml-2'><Link to='/event'>Volunteer Events</Link> </li>
+                    <li className='ml-2'><Link to='/team'>Teams</Link> </li>
 
 
     </>
