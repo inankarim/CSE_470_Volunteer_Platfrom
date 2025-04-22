@@ -1,39 +1,40 @@
-import React, { useState } from "react";
+import React from "react";
+import Swal from "sweetalert2";
 
-export default function CreateEvent() {
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    date: "",
-    time: "",
-    location: "",
-    category: "",
-  });
-
-  const [image, setImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
-
-  const handleChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
-  };
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setImage(file);
-      setImagePreview(URL.createObjectURL(file));
-    }
-  };
-
-  const handleSubmit = (e) => {
+const CreateEvent = () => {
+  const handleSubmit = e => {
     e.preventDefault();
-    console.log("Event Created:", { ...formData, image });
-    alert("🎉 Volunteer event created successfully!");
-  };
+    const form = e.target;
+    const title = form.title.value;
+    const description = form.description.value;
+    const location = form.location.value;
+    const date = form.date.value;
+    const time = form.time.value;
+    const image = form.image.value;
+    const category = form.category.value;
 
+    const newEvent = { title, description, location, date, time, image, category };
+    console.log(newEvent);
+
+    fetch("http://localhost:3000/event", {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(newEvent)
+    })
+      .then(res => res.json())
+      .then(data => {
+        console.log(data);
+        if (data.insertedId) {
+          Swal.fire({
+            title: "Success",
+            text: "Event Added Successfully",
+            icon: "success"
+          });
+        }
+      });
+  };
   return (
     <div className="min-h-screen flex items-center justify-center bg-neutral px-4 py-8">
       <div className="card w-full max-w-2xl bg-base-100 shadow-2xl">
@@ -51,8 +52,8 @@ export default function CreateEvent() {
                 name="title"
                 placeholder="e.g., Beach Cleanup"
                 className="input input-bordered w-full focus:outline-none focus:ring-2 focus:ring-primary"
-                value={formData.title}
-                onChange={handleChange}
+              
+               
                 required
               />
             </div>
@@ -66,8 +67,6 @@ export default function CreateEvent() {
                 name="description"
                 className="textarea textarea-bordered w-full h-24"
                 placeholder="Describe the purpose and tasks for this event"
-                value={formData.description}
-                onChange={handleChange}
                 required
               ></textarea>
             </div>
@@ -82,8 +81,8 @@ export default function CreateEvent() {
                   type="date"
                   name="date"
                   className="input input-bordered w-full"
-                  value={formData.date}
-                  onChange={handleChange}
+                  
+                 
                   required
                 />
               </div>
@@ -96,8 +95,6 @@ export default function CreateEvent() {
                   type="time"
                   name="time"
                   className="input input-bordered w-full"
-                  value={formData.time}
-                  onChange={handleChange}
                   required
                 />
               </div>
@@ -113,8 +110,8 @@ export default function CreateEvent() {
                 name="location"
                 placeholder="e.g., Central Park, NY"
                 className="input input-bordered w-full"
-                value={formData.location}
-                onChange={handleChange}
+               
+                
                 required
               />
             </div>
@@ -125,20 +122,12 @@ export default function CreateEvent() {
                 <span className="label-text text-lg text-base-content">Event Image / Banner</span>
               </label>
               <input
-                type="file"
-                accept="image/*"
-                className="file-input file-input-bordered w-full"
-                onChange={handleImageChange}
+                type="url"
+                name="image"
+                className="input input-bordered w-full"
+                
               />
-              {imagePreview && (
-                <div className="mt-3">
-                  <img
-                    src={imagePreview}
-                    alt="Preview"
-                    className="rounded-lg w-full max-h-64 object-cover border border-base-300"
-                  />
-                </div>
-              )}
+              {/* s */}
               <p className="text-sm text-gray-400 mt-1">Upload a banner or flyer (JPG/PNG)</p>
             </div>
 
@@ -150,8 +139,7 @@ export default function CreateEvent() {
               <select
                 name="category"
                 className="select select-bordered w-full"
-                value={formData.category}
-                onChange={handleChange}
+                
                 required
               >
                 <option value="" disabled>Select a volunteer category</option>
@@ -168,6 +156,7 @@ export default function CreateEvent() {
             <div className="mt-4">
               <button
                 type="submit"
+                value="addevent"
                 className="btn btn-primary btn-block text-lg tracking-wide"
               >
                 Create Event
@@ -178,4 +167,5 @@ export default function CreateEvent() {
       </div>
     </div>
   );
-}
+};
+export default CreateEvent;
