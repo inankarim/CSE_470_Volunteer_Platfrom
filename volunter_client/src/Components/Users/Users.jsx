@@ -15,6 +15,7 @@ const Users = () => {
       <p><strong>Email:</strong> {dbUser.email}</p>
       <p><strong>Skills:</strong> {dbUser.skills}</p>
       <p><strong>Joined:</strong> {dbUser.creationTime}</p>
+      
     </div>
   );
 };
