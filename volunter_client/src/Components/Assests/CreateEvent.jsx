@@ -1,5 +1,6 @@
 import React from "react";
 import Swal from "sweetalert2";
+import Navbar from "../Layout/Navbar";
 
 const CreateEvent = () => {
   const handleSubmit = e => {
@@ -36,6 +37,9 @@ const CreateEvent = () => {
       });
   };
   return (
+    <div>
+      <Navbar></Navbar>
+  
     <div className="min-h-screen flex items-center justify-center bg-neutral px-4 py-8">
       <div className="card w-full max-w-2xl bg-base-100 shadow-2xl">
         <div className="card-body space-y-6">
@@ -165,6 +169,7 @@ const CreateEvent = () => {
           </form>
         </div>
       </div>
+    </div>
     </div>
   );
 };

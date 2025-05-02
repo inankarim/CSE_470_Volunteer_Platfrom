@@ -5,6 +5,9 @@ import App from '../../App';
 import CreateEvent from '../Assests/CreateEvent';
 import SignUp from '../Logs/SignUp';
 import Team from '../Team/Team';
+import Users from '../Users/Users';
+import AuthLayout from '../Layout/AuthLayout';
+import PrivateRoute from './PrivateRoute';
 
 const router = createBrowserRouter([
     {
@@ -13,22 +16,56 @@ const router = createBrowserRouter([
         loader: () => fetch("http://localhost:3000/event")
 
     },
-    {
-        path:'/signin',
-        element:<Signin></Signin>
-    },
+    // {
+    //     path:'/signin',
+    //     element:<Signin></Signin>
+    // },
     {
         path:'/event',
-        element:<CreateEvent></CreateEvent>
+        element:(
+            <PrivateRoute>
+                 <CreateEvent></CreateEvent>
+            </PrivateRoute>
+                
+        ),
     },
-    {
-        path:'/signup',
-        element: <SignUp></SignUp>
-    },
+    // {
+    //     path:'/signup',
+    //     element: <SignUp></SignUp>
+    // },
     {
         path:'/team_crt',
-        element:<Team></Team>
-    }
+        element:(
+            <PrivateRoute>
+                 <Team></Team> 
+            </PrivateRoute>
+                
+        ),
+    },
+    {
+        path:'/users',
+        element:<Users></Users>,
+        
+    },
+    {
+        path:"auth",
+        element:<AuthLayout></AuthLayout>,
+        children:[
+            {
+                path:"/auth/signin",
+                element:<Signin></Signin>
+            },
+            {
+                path:"/auth/signup",
+                element:<SignUp></SignUp>
+            }
+        ]
+
+    },
+    {
+        path: "/*",
+        element: <h2>Error404</h2>,
+      },
 ])
 
 export default router;

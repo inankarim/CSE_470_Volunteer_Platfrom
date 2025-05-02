@@ -1,11 +1,23 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Link, NavLink } from 'react-router-dom';
+import { AuthContext } from '../routes/AuthProviders';
 
 const Navbar = () => {
+    const {user, logOut} = useContext(AuthContext)
+    const handleLogout = () =>{
+        console.log("user trying to logout");
+        logOut()
+        .then(() =>{
+            alert("You Logged Out Successfullu=y")
+        })
+        .catch((error) =>{
+            console.log(error)
+        });
+    }
     const items = <>
                     <li className='ml-2'><Link to='/'>Home</Link> </li>
-                    <li className='ml-2'><Link to='/signup'>Register</Link></li>
-                    <li className='ml-2'><Link>Volunteer</Link> </li>
+                    {!user && (<li className='ml-2'><Link to='/auth/signup'>Register</Link></li>)}        
+                    {/* <li className='ml-2'><Link>Volunteer</Link> </li> */}
                     <li className='ml-2'><Link to='/event'>Volunteer Events</Link> </li>
                     <li className='ml-2'><Link to='/team_crt'> Team</Link> </li>
 
@@ -30,10 +42,22 @@ const Navbar = () => {
                         {items}
                         </ul>
                     </div>
-                    <div className="navbar-end">
-                        <a className="btn">Logout</a>
-                        <NavLink to="/signin"><a className="btn">SignIn</a></NavLink>
-                    </div>
+                    <div className="navbar-end flex gap-4 items-center">
+                            {user ? (
+                                <>
+                                <NavLink to="/users">
+                                    <button className="btn">Profile</button>
+                                </NavLink>
+                                <button onClick={handleLogout} className="btn btn-error">
+                                    Logout
+                                </button>
+                                </>
+                            ) : (
+                                <NavLink to="/auth/signin">
+                                <button className="btn btn-primary">SignIn</button>
+                                </NavLink>
+                            )}
+                            </div>
                 </div>
             
         </div>
