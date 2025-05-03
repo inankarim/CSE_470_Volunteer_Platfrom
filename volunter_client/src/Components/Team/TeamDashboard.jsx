@@ -1,6 +1,8 @@
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../routes/AuthProviders";
 import Swal from "sweetalert2";
+import { PiNumberSquareFiveLight } from "react-icons/pi";
+import Navbar from "../Layout/Navbar";
 
 const TeamDashboard = () => {
   const { dbUser } = useContext(AuthContext);
@@ -36,18 +38,39 @@ const TeamDashboard = () => {
       .then(() => Swal.fire("Success", "Team updated", "success"))
       .catch(() => Swal.fire("Error", "Failed to update team", "error"));
   };
-
+  const handleSaveToBackend = (updatedTeam) => {
+    fetch(`http://localhost:3000/team/leader/${dbUser.uid}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updatedTeam)
+    })
+      .then(res => res.json())
+      .then(() => {
+        Swal.fire("Success", "Team updated", "success");
+        setTeam(updatedTeam);
+      })
+      .catch(() => Swal.fire("Error", "Failed to update team", "error"));
+  };
   const handleRemoveMember = (uid) => {
     const updatedMembers = team.members.filter(m => m.uid !== uid);
-    setTeam({ ...team, members: updatedMembers });
+    const updatedTeam = { ...team, members: updatedMembers };
+    setTeam(updatedTeam);
+    handleSaveToBackend(updatedTeam);;
   };
 
   const handleAddMember = (uid) => {
     const user = users.find(u => u.uid === uid);
     if (user) {
-      setTeam({ ...team, members: [...team.members, { uid: user.uid, uname: user.uname }] });
+      const updatedTeam = {
+        ...team,
+        members: [...team.members, { uid: user.uid, uname: user.uname }]
+      };
+      setTeam(updatedTeam);
+      handleSaveToBackend(updatedTeam);
     }
   };
+  
+  
 
   if (loading) return <p>Loading team...</p>;
   if (!team) return <p>You are not a team leader.</p>;
@@ -57,6 +80,9 @@ const TeamDashboard = () => {
   );
 
   return (
+    <div>
+     
+    <Navbar></Navbar>
     <div className="max-w-3xl mx-auto p-6 bg-gray-50 rounded-2xl shadow-lg mt-10">
       <h2 className="text-3xl font-bold mb-4">{team.teamName}</h2>
 
@@ -133,6 +159,7 @@ const TeamDashboard = () => {
       >
         Save Changes
       </button>
+    </div>
     </div>
   );
 };
