@@ -1,9 +1,9 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect, useState  } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { AuthContext } from '../routes/AuthProviders';
 
 const Navbar = () => {
-    const {user, logOut} = useContext(AuthContext)
+    const {user, logOut, dbUser} = useContext(AuthContext)
     const handleLogout = () =>{
         console.log("user trying to logout");
         logOut()
@@ -14,12 +14,31 @@ const Navbar = () => {
             console.log(error)
         });
     }
+    const [isTeamLeader, setIsTeamLeader] = useState(false);
+
+    useEffect(() => {
+        if (!dbUser?.uid) return;
+
+        fetch(`http://localhost:3000/team/leader/${dbUser.uid}`)
+        .then(res => res.json())
+        .then(data => {
+            // If data is valid and matches leaderUid, consider user a team leader
+            if (data?.leaderUid === dbUser.uid) {
+            setIsTeamLeader(true);
+            }
+        })
+        .catch(err => {
+            console.error('Error checking team leader:', err);
+        });
+    }, [dbUser]);
+
     const items = <>
                     <li className='ml-2'><Link to='/'>Home</Link> </li>
                     {!user && (<li className='ml-2'><Link to='/auth/signup'>Register</Link></li>)}        
                     {/* <li className='ml-2'><Link>Volunteer</Link> </li> */}
                     <li className='ml-2'><Link to='/event'>Volunteer Events</Link> </li>
                     <li className='ml-2'><Link to='/team_crt'> Team</Link> </li>
+                    {isTeamLeader && (<li className='ml-2'><Link to='/teamdash'>Team Dashboard</Link> </li>)}
 
 
     </>

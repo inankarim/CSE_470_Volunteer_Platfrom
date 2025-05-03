@@ -1,19 +1,25 @@
 import React, { useContext, useState } from 'react';
 import Navbar from '../Layout/Navbar';
 import { AuthContext } from '../routes/AuthProviders';
+import Swal from 'sweetalert2';
+import { useLoaderData } from 'react-router-dom';
 
 const Team = () => {
     const { user, dbUser } = useContext(AuthContext);
     const [teamName, setTeamName] = useState('');
-    const [teamMembers, setTeamMembers] = useState(['']);
+    const [teamMembers, setTeamMembers] = useState([{}]);
     const [privacy, setPrivacy] = useState('public');
     const [teamImageUrl, setTeamImageUrl] = useState('');
+    const users = useLoaderData();
+    const[datamembers,setdataTeamMembers]=useState(users)
 
-    const handleMemberChange = (index, value) => {
+    const handleMemberChange = (index, selectedUser) => {
         const updated = [...teamMembers];
-        updated[index] = value;
+        updated[index] = { uid: selectedUser.uid, uname: selectedUser.uname };
         setTeamMembers(updated);
     };
+    
+    
 
     const addMember = () => {
         setTeamMembers([...teamMembers, '']);
@@ -21,15 +27,57 @@ const Team = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+        // Validation: check for empty or invalid members
+        if (!teamMembers.length || teamMembers.some(m => !m.uid)) {
+            return Swal.fire({
+                title: "Validation Error",
+                text: "Please add at least one valid team member.",
+                icon: "warning"
+            });
+        }
+
         const teamData = {
             teamName,
-            members: teamMembers.filter(m => m.trim() !== ''),  // exclude empty members
-            memberCount: teamMembers.filter(m => m.trim() !== '').length,
+            leaderUid: dbUser?.uid || user?.uid,
+            members: teamMembers, // no trimming or filtering
             privacy,
-            teamImageUrl
+            imageUrl: teamImageUrl
         };
-        console.log('Team Created:', teamData);
-        // Here you can send `teamData` to your API
+
+        fetch("http://localhost:3000/team", {
+            method: "POST",
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(teamData)
+        })
+            .then(res => res.json())
+            .then(data => {
+                console.log('Server response:', data);
+                if (data.insertedId || data.acknowledged) {
+                    Swal.fire({
+                        title: "Success",
+                        text: "Team Created Successfully",
+                        icon: "success"
+                    });
+                    setTeamName('');
+                    setTeamMembers(['']);
+                    setPrivacy('public');
+                    setTeamImageUrl('');
+                } else {
+                    Swal.fire({
+                        title: "Error",
+                        text: "Failed to create team",
+                        icon: "error"
+                    });
+                }
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                Swal.fire({
+                    title: "Error",
+                    text: "Something went wrong",
+                    icon: "error"
+                });
+            });
     };
 
     return (
@@ -37,9 +85,8 @@ const Team = () => {
             <Navbar />
             <div className="max-w-3xl mx-auto p-6 bg-gray-50 rounded-2xl shadow-lg mt-10">
                 <h2 className="text-3xl font-bold mb-6 text-center text-blue-700">Create Your Project Team</h2>
-                
+
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Team Image URL Input */}
                     <div>
                         <label className="block font-medium text-gray-700 mb-1">Team Picture URL</label>
                         <input
@@ -56,7 +103,6 @@ const Team = () => {
                         )}
                     </div>
 
-                    {/* Team Name */}
                     <div>
                         <label className="block font-medium text-gray-700 mb-1">Team Name</label>
                         <input
@@ -69,7 +115,6 @@ const Team = () => {
                         />
                     </div>
 
-                    {/* Privacy */}
                     <div>
                         <label className="block font-medium text-gray-700 mb-1">Privacy</label>
                         <select
@@ -82,18 +127,32 @@ const Team = () => {
                         </select>
                     </div>
 
-                    {/* Team Members */}
                     <div>
                         <label className="block font-medium text-gray-700 mb-2">Team Members</label>
                         {teamMembers.map((member, index) => (
-                            <input
-                                key={index}
-                                type="text"
-                                placeholder={`Member ${index + 1} Name`}
-                                value={member}
-                                onChange={(e) => handleMemberChange(index, e.target.value)}
-                                className="w-full mb-2 p-2 border border-gray-300 rounded-md shadow-sm"
-                            />
+                            <select
+                            key={index}
+                            value={teamMembers[index]?.uid || ''}
+                            onChange={(e) => {
+                                const selectedUid = e.target.value;
+                                const selectedUser = users.find(u => u.uid === selectedUid);
+                                handleMemberChange(index, selectedUser);
+                            }}
+                            className="w-full mb-2 p-2 border border-gray-300 rounded-md shadow-sm"
+                        >
+                            <option value="">
+                                {teamMembers[index]?.uname || 'Select member'}
+                            </option>
+                            {users
+                                .filter(user => !teamMembers.some(member => member?.uid === user.uid))
+                                .map(user => (
+                                    <option key={user.uid} value={user.uid}>
+                                        {user.uname} ({user.skills})
+                                    </option>
+                            ))}
+
+                        </select>
+                        
                         ))}
                         <button
                             type="button"
@@ -104,12 +163,11 @@ const Team = () => {
                         </button>
                     </div>
 
-                    {/* Member Count */}
+
                     <div>
-                        <p className="text-gray-600 font-medium">Total Members: {teamMembers.filter(m => m.trim() !== '').length}</p>
+                        <p className="text-gray-600 font-medium">Total Members: {teamMembers.length}</p>
                     </div>
 
-                    {/* Submit */}
                     <div className="text-center">
                         <button
                             type="submit"
@@ -120,7 +178,6 @@ const Team = () => {
                     </div>
                 </form>
 
-                {/* Preview Section */}
                 {teamName && (
                     <div className="mt-10 border-t pt-6">
                         <h3 className="text-2xl font-semibold text-gray-800 mb-4">Team Dashboard (Preview)</h3>
@@ -128,10 +185,11 @@ const Team = () => {
                         <p><strong>Privacy:</strong> {privacy}</p>
                         <p><strong>Members:</strong></p>
                         <ul className="list-disc pl-6 text-gray-700">
-                            {teamMembers.filter(m => m.trim() !== '').map((member, idx) => (
-                                <li key={idx}>{member}</li>
+                            {teamMembers.map((member, idx) => (
+                                <li key={idx}>{member?.uname || '(empty)'}</li>
                             ))}
                         </ul>
+
                         {teamImageUrl && (
                             <div className="mt-4">
                                 <p className="font-medium">Team Picture:</p>

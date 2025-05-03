@@ -63,6 +63,11 @@ async function run() {
     });
 
     // Get all users (for testing)
+    app.get('/users', async (req, res) => {
+      const cursor = userCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
     // Get a single user by Firebase UID
       app.get('/users/uid/:uid', async (req, res) => {
         const uid = req.params.uid;
@@ -81,7 +86,77 @@ async function run() {
 
     //==Team Routes == 
     //Create a team
-  
+    app.post('/team', async (req, res) => {
+      const newTeam = req.body;
+      console.log("Received event:", newTeam);
+      try {
+        // Insert the new team
+        const result = await teamsCollection.insertOne(newTeam);
+    
+        if (result.insertedId) {
+          // Get all member UIDs
+          const memberUids = newTeam.members.map(member => member.uid);
+    
+          // Update each user: add the team name to their profile
+          const updateResult = await userCollection.updateMany(
+            { uid: { $in: memberUids } },
+            { $addToSet: { teams: newTeam.teamName } }  // creates "teams" array if missing
+          );
+    
+          console.log(`Updated ${updateResult.modifiedCount} user(s) with the team name.`);
+    
+          res.send({ insertedId: result.insertedId, updatedUsers: updateResult.modifiedCount });
+        } else {
+          res.status(500).send({ error: 'Failed to create team' });
+        }
+      } catch (err) {
+        console.error('Error creating team:', err);
+        res.status(500).send({ error: 'Internal server error' });
+      }
+    });
+    app.get('/teams', async (req, res) => {
+      const cursor = teamsCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+    const { ObjectId } = require('mongodb'); // Make sure this is at the top if not already
+
+    // Get a team by leader UID
+    app.get('/team/leader/:uid', async (req, res) => {
+      const leaderUid = req.params.uid;
+      console.log(leaderUid)
+
+      try {
+        const team = await teamsCollection.findOne({ leaderUid });
+        if (team) {
+          res.send(team);
+        } else {
+          res.status(404).send({ message: 'No team found for this leader' });
+        }
+      } catch (err) {
+        console.error("Failed to fetch team by leader:", err);
+        res.status(500).send({ error: 'Internal server error' });
+      }
+    });
+    //Update team
+    // Update a team by leaderUid
+    app.put('/team/leader/:uid', async (req, res) => {
+      const leaderUid = req.params.uid;
+      const updatedData = req.body;
+
+      try {
+          const result = await teamsCollection.updateOne(
+              { leaderUid },
+              { $set: updatedData }
+          );
+          res.send(result);
+      } catch (err) {
+          console.error("Failed to update team:", err);
+          res.status(500).send({ error: 'Internal server error' });
+      }
+    });
+
+
 
     // Optional: Ping to confirm connection
     await client.db("admin").command({ ping: 1 });
