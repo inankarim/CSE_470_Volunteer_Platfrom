@@ -75,7 +75,10 @@ const router = createBrowserRouter([
     },
     {
         path:'/comm',
-        element:<CommunityCreate></CommunityCreate>    
+        element:(<PrivateRoute>
+            <CommunityCreate></CommunityCreate>
+        </PrivateRoute>),
+        loader:()=>fetch("http://localhost:3000/request")
     },
     {
         path: "/*",

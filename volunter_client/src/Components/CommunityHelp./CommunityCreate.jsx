@@ -1,99 +1,135 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import Navbar from '../Layout/Navbar';
+import { AuthContext } from '../routes/AuthProviders';
+import { auth } from '../../firebase/firebase.init';
+import Swal from "sweetalert2";
+import { useLoaderData } from 'react-router-dom';
+import CommunityCard from './CommunityCard';
 
+const CommunityCreate = () => {
+  const { dbUser } = useContext(AuthContext);
+  const [loading, setLoading] = useState(false);
+  const loadedrequests = useLoaderData();
+  const [requests, setrequests] = useState(loadedrequests);
 
-const CommunityCreate = ( ) => {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [urgencyLevel, setUrgencyLevel] = useState('medium');
-  const [location, setLocation] = useState('');
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const user = auth.currentUser;
+    if (!user) return alert('You must be logged in');
 
- 
-  
- 
+    const formData = new FormData(e.target);
+    const newReq = {
+      title: formData.get('title'),
+      description: formData.get('description'),
+      urgencyLevel: formData.get('urgencyLevel'),
+      location: formData.get('location'),
+    };
+
+    setLoading(true);
+
+    fetch("http://localhost:3000/request", {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ ...newReq, userId: dbUser.uid, userName: dbUser.uname || 'Anonymous' }),
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.insertedId) {
+          Swal.fire({
+            title: "Success",
+            text: "Event Added Successfully",
+            icon: "success"
+          });
+
+          const newRequestCard = {
+            _id: data.insertedId,
+            ...newReq,
+            userName: dbUser.uname || 'Anonymous'
+          };
+          setrequests(prev => [newRequestCard, ...prev]);
+
+          e.target.reset();
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        Swal.fire("Error", "Failed to add request", "error");
+      })
+      .finally(() => setLoading(false));
+  };
 
   return (
-    <div> <Navbar></Navbar>
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
-        <form >
-          <h2 className="text-2xl font-bold mb-4 text-black">Create a Help Request</h2>
-
-          <div className="form-control mb-4">
-            <label className="label" htmlFor="title">
-              <span className="label-text">Title</span>
-            </label>
+    <div>
+      <Navbar />
+      <div className="card bg-base-100 shadow-md w-full max-w-lg mx-auto my-4">
+        <div className="card-body">
+          <h2 className="card-title text-lg font-semibold">Create a Help Request</h2>
+          <form onSubmit={handleSubmit} className="space-y-4">
             <input
               id="title"
               type="text"
               placeholder="What do you need help with?"
               className="input input-bordered w-full"
-              value={title}
-             
+              name="title"
               required
             />
-          </div>
 
-          <div className="form-control mb-4">
-            <label className="label" htmlFor="description">
-              <span className="label-text">Description</span>
-            </label>
             <textarea
               id="description"
               placeholder="Provide details about your request..."
-              className="textarea textarea-bordered w-full min-h-[100px]"
-              value={description}
-              
+              className="textarea textarea-bordered w-full min-h-[80px]"
+              name="description"
               required
             />
-          </div>
 
-          <div className="form-control mb-4">
-            <label className="label" htmlFor="urgency">
-              <span className="label-text">Urgency Level</span>
-            </label>
-            <select
-              id="urgency"
-              className="select select-bordered w-full"
-              value={urgencyLevel}
-            
-            >
-              <option value="low">Low - Can wait a few days</option>
-              <option value="medium">Medium - Need help soon</option>
-              <option value="high">High - Urgent assistance needed</option>
-            </select>
-          </div>
+            <div className="flex items-center space-x-2">
+              <select
+                id="urgency"
+                className="select select-bordered flex-1"
+                name="urgencyLevel"
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
 
-          <div className="form-control mb-4">
-            <label className="label" htmlFor="location">
-              <span className="label-text">Location (Optional)</span>
-            </label>
-            <input
-              id="location"
-              type="text"
-              placeholder="Where should the helper meet you?"
-              className="input input-bordered w-full"
-              value={location}
-              
-            />
-          </div>
+              <input
+                id="location"
+                type="text"
+                placeholder="Location (optional)"
+                className="input input-bordered flex-1"
+                name="location"
+              />
+            </div>
 
-          <div className="flex justify-end space-x-2">
-            <button
-              type="button"
-              className="btn btn-outline"
-              
-            >
-              Cancel
-            </button>
-            <button type="submit" className="btn btn-primary">
-              Post Request
-            </button>
-          </div>
-        </form>
+            <div className="card-actions justify-end">
+              <button
+                type="button"
+                className="btn btn-outline btn-sm"
+                onClick={() => e.target.reset()}
+              >
+                Cancel
+              </button>
+              <button type="submit" className="btn btn-primary btn-sm" disabled={loading}>
+                {loading ? 'Posting...' : 'Post Request'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      {loading && (
+        <p className="text-center text-sm text-gray-500 my-2">Posting your request...</p>
+      )}
+
+      <div className="grid gap-4 px-4 py-2">
+        {requests.map(req => (
+          <CommunityCard key={req._id} req={req} setrequests={setrequests} />
+        ))}
       </div>
     </div>
- </div>
   );
 };
 

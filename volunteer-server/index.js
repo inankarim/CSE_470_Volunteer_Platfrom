@@ -26,7 +26,10 @@ async function run() {
 
     const eventCollection = client.db('EventDB').collection('event');
     const userCollection = client.db('EventDB').collection('users');
-    const teamsCollection = client.db('EventDB').collection('teams'); // 👈 same DB as event
+    const teamsCollection = client.db('EventDB').collection('teams');
+    const requestCollection=client.db('EventDB').collection('request');
+    const messageCollection = client.db('EventDB').collection('messages');
+// 👈 same DB as event
  // 👈 New User Collection
 
     // === EVENT ROUTES ===
@@ -165,7 +168,86 @@ async function run() {
       res.status(500).send({ error: 'Internal server error' });
     }
   });
+  //Request of Backend
+  app.post('/request', async (req, res) => {
+    try {
+        const newReq = req.body;
+        if (!newReq.title || !newReq.description) {
+            return res.status(400).send({ error: "Title and description are required." });
+        }
 
+        newReq.createdAt = new Date();
+        const result = await requestCollection.insertOne(newReq);
+        res.send(result);
+    } catch (error) {
+        console.error("Error inserting request:", error);
+        res.status(500).send({ error: "Failed to create request" });
+    }
+  });
+  app.get('/request', async (req, res) => {
+    try {
+        const requests = await requestCollection
+            .find({})
+            .sort({ createdAt: -1 }) // newest first
+            .toArray();
+
+        res.send(requests);
+    } catch (error) {
+        console.error("Error fetching requests:", error);
+        res.status(500).send({ error: "Failed to fetch requests" });
+    }
+  });
+
+
+  // === MESSAGE ROUTES ===
+
+    // POST a message to a post
+    app.post('/messages', async (req, res) => {
+      const { messageText, userId, userName, postId } = req.body;
+
+      if (!messageText || !userId || !userName || !postId) {
+        return res.status(400).send({ error: 'All fields are required.' });
+      }
+
+      const newMessage = {
+        messageText,
+        userId,
+        userName,
+        postId,
+        timestamp: new Date()
+      };
+
+      try {
+        const result = await messageCollection.insertOne(newMessage);
+        res.send(result);
+      } catch (error) {
+        console.error("Error saving message:", error);
+        res.status(500).send({ error: 'Internal server error' });
+      }
+    });
+   //Get a message to a post
+   
+
+   app.get('/messages/:postId', async (req, res) => {
+     const { postId } = req.params;
+   
+     try {
+       const messages = await messageCollection.find({ postId }).toArray();
+   
+       // Convert MongoDB internal types to plain JS
+       const sanitizedMessages = messages.map(msg => ({
+         ...msg,
+         _id: msg._id.toString(),
+         timestamp: msg.timestamp instanceof Date ? msg.timestamp.toISOString() : msg.timestamp
+       }));
+   
+       res.json(sanitizedMessages);
+     } catch (err) {
+       console.error(err);
+       res.status(500).json({ error: "Failed to fetch messages" });
+     }
+   });
+   
 
 
 
