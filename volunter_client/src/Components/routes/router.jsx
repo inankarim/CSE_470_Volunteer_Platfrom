@@ -8,6 +8,8 @@ import Team from '../Team/Team';
 import Users from '../Users/Users';
 import AuthLayout from '../Layout/AuthLayout';
 import PrivateRoute from './PrivateRoute';
+import TeamDashboard from '../Team/TeamDashboard';
+import CommunityCreate from '../CommunityHelp/CommunityCreate';
 
 const router = createBrowserRouter([
     {
@@ -41,6 +43,15 @@ const router = createBrowserRouter([
             </PrivateRoute>
                 
         ),
+        loader: ()=>fetch("http://localhost:3000/users")
+    },
+    {
+        path:'/teamdash',
+        element:(
+            <PrivateRoute>
+                <TeamDashboard></TeamDashboard>
+            </PrivateRoute>
+        )
     },
     {
         path:'/users',
@@ -61,6 +72,13 @@ const router = createBrowserRouter([
             }
         ]
 
+    },
+    {
+        path:'/comm',
+        element:(<PrivateRoute>
+            <CommunityCreate></CommunityCreate>
+        </PrivateRoute>),
+        loader:()=>fetch("http://localhost:3000/request")
     },
     {
         path: "/*",
