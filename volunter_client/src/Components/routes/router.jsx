@@ -9,6 +9,7 @@ import Users from '../Users/Users';
 import AuthLayout from '../Layout/AuthLayout';
 import PrivateRoute from './PrivateRoute';
 import TeamDashboard from '../Team/TeamDashboard';
+import CommunityCreate from '../CommunityHelp./CommunityCreate';
 
 const router = createBrowserRouter([
     {
@@ -71,6 +72,10 @@ const router = createBrowserRouter([
             }
         ]
 
+    },
+    {
+        path:'/comm',
+        element:<CommunityCreate></CommunityCreate>    
     },
     {
         path: "/*",

@@ -38,6 +38,7 @@ const Navbar = () => {
                     {/* <li className='ml-2'><Link>Volunteer</Link> </li> */}
                     <li className='ml-2'><Link to='/event'>Volunteer Events</Link> </li>
                     <li className='ml-2'><Link to='/team_crt'> Team</Link> </li>
+                    <li className='ml-2'><Link to='/comm'> Commiunity</Link> </li>
                     {isTeamLeader && (<li className='ml-2'><Link to='/teamdash'>Team Dashboard</Link> </li>)}
 
 

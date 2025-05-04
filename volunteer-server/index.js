@@ -141,20 +141,31 @@ async function run() {
     //Update team
     // Update a team by leaderUid
     app.put('/team/leader/:uid', async (req, res) => {
-      const leaderUid = req.params.uid;
-      const updatedData = req.body;
+    const leaderUid = req.params.uid;
+    const { teamName, imageUrl, members } = req.body;
 
-      try {
-          const result = await teamsCollection.updateOne(
-              { leaderUid },
-              { $set: updatedData }
-          );
-          res.send(result);
-      } catch (err) {
-          console.error("Failed to update team:", err);
-          res.status(500).send({ error: 'Internal server error' });
+    try {
+      const updateFields = {};
+      if (teamName) updateFields.teamName = teamName;
+      if (imageUrl) updateFields.imageUrl = imageUrl;
+      if (Array.isArray(members)) updateFields.members = members;
+
+      const result = await teamsCollection.updateOne(
+        { leaderUid },
+        { $set: updateFields }
+      );
+
+      if (result.matchedCount === 0) {
+        res.status(404).send({ message: 'Team not found' });
+      } else {
+        res.send(result);
       }
-    });
+    } catch (err) {
+      console.error("Failed to update team:", err);
+      res.status(500).send({ error: 'Internal server error' });
+    }
+  });
+
 
 
 
