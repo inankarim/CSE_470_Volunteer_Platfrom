@@ -24,7 +24,7 @@ function App() {
 
       {/* content */}
       <h1 className='text-6xl text-black text-center'>Hot Coffeee {events.length}</h1>
-      <div className='grid md:grid-cols-3 gap-4 m-2'>
+      <div className='grid  md:grid-cols-3 gap-4 m-2'>
     {
       events.map(event => (
         <CardEvent key={event._id} event={event} setEvents={setEvents} />
