@@ -9,7 +9,7 @@ import Users from '../Users/Users';
 import AuthLayout from '../Layout/AuthLayout';
 import PrivateRoute from './PrivateRoute';
 import TeamDashboard from '../Team/TeamDashboard';
-import CommunityCreate from '../CommunityHelp./CommunityCreate';
+import CommunityCreate from '../CommunityHelp/CommunityCreate';
 
 const router = createBrowserRouter([
     {
