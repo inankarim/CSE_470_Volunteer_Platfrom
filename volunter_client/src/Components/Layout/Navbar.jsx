@@ -1,12 +1,45 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useContext, useEffect, useState  } from 'react';
+import { Link, NavLink } from 'react-router-dom';
+import { AuthContext } from '../routes/AuthProviders';
 
 const Navbar = () => {
+    const {user, logOut, dbUser} = useContext(AuthContext)
+    const handleLogout = () =>{
+        console.log("user trying to logout");
+        logOut()
+        .then(() =>{
+            alert("You Logged Out Successfullu=y")
+        })
+        .catch((error) =>{
+            console.log(error)
+        });
+    }
+    const [isTeamLeader, setIsTeamLeader] = useState(false);
+
+    useEffect(() => {
+        if (!dbUser?.uid) return;
+
+        fetch(`http://localhost:3000/team/leader/${dbUser.uid}`)
+        .then(res => res.json())
+        .then(data => {
+            // If data is valid and matches leaderUid, consider user a team leader
+            if (data?.leaderUid === dbUser.uid) {
+            setIsTeamLeader(true);
+            }
+        })
+        .catch(err => {
+            console.error('Error checking team leader:', err);
+        });
+    }, [dbUser]);
+
     const items = <>
                     <li className='ml-2'><Link to='/'>Home</Link> </li>
-                    <li className='ml-2'><Link to='/signin'>SignIn</Link></li>
-                    <li className='ml-2'><Link>Volunteer</Link> </li>
+                    {!user && (<li className='ml-2'><Link to='/auth/signup'>Register</Link></li>)}        
+                    {/* <li className='ml-2'><Link>Volunteer</Link> </li> */}
                     <li className='ml-2'><Link to='/event'>Volunteer Events</Link> </li>
+                    <li className='ml-2'><Link to='/team_crt'> Team</Link> </li>
+                    <li className='ml-2'><Link to='/comm'> Commiunity</Link> </li>
+                    {isTeamLeader && (<li className='ml-2'><Link to='/teamdash'>Team Dashboard</Link> </li>)}
 
 
     </>
@@ -29,9 +62,22 @@ const Navbar = () => {
                         {items}
                         </ul>
                     </div>
-                    <div className="navbar-end">
-                        <a className="btn">Button</a>
-                    </div>
+                    <div className="navbar-end flex gap-4 items-center">
+                            {user ? (
+                                <>
+                                <NavLink to="/users">
+                                    <button className="btn">Profile</button>
+                                </NavLink>
+                                <button onClick={handleLogout} className="btn btn-error">
+                                    Logout
+                                </button>
+                                </>
+                            ) : (
+                                <NavLink to="/auth/signin">
+                                <button className="btn btn-primary">SignIn</button>
+                                </NavLink>
+                            )}
+                            </div>
                 </div>
             
         </div>
