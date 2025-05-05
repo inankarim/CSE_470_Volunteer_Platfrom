@@ -18,8 +18,6 @@ function App() {
         <HomeLayout />
 
         {/* header */}
-        <h1 className='text-6xl text-black text-center'>Hot Coffeee {events.length}</h1>
-
         {/* search bar */}
         <div className='flex justify-center my-6'>
           <input
