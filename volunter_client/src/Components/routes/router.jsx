@@ -11,6 +11,7 @@ import PrivateRoute from './PrivateRoute';
 import TeamDashboard from '../Team/TeamDashboard';
 import CommunityCreate from '../CommunityHelp/CommunityCreate';
 import Event from '../Users/Event';
+import MyEvent from '../Users/Myevent';
 
 const router = createBrowserRouter([
     {
@@ -57,6 +58,11 @@ const router = createBrowserRouter([
     {
         path:'/users',
         element:<Users></Users>,
+        
+    },
+    {
+        path:'myevent',
+        element:<MyEvent></MyEvent>,
         
     },
     {
