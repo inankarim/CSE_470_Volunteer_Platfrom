@@ -46,28 +46,26 @@ async function run() {
     // ✅ === JOIN EVENT ROUTE ===
     app.post('/join-event', async (req, res) => {
       const { eventId, userEmail, userUid } = req.body;
-    
+
       if (!eventId || !userEmail || !userUid) {
         return res.status(400).send({ error: "Missing eventId, userEmail, or userUid." });
       }
-    
+
       try {
-        // Add user to the event's joinedUsers array
         const eventUpdateResult = await eventCollection.updateOne(
           { _id: new ObjectId(eventId) },
-          { $addToSet: { joinedUsers: userUid } }  // Add user UID to the event's joinedUsers array
+          { $addToSet: { joinedUsers: userUid } }
         );
-    
+
         if (eventUpdateResult.modifiedCount === 0) {
           return res.status(404).send({ error: "Event not found or user already joined." });
         }
-    
-        // Add the eventId to the user's event list
+
         const userUpdateResult = await userCollection.updateOne(
           { uid: userUid },
-          { $addToSet: { events: eventId } }  // Add eventId to the user's events list
+          { $addToSet: { events: eventId } }
         );
-    
+
         if (userUpdateResult.modifiedCount > 0) {
           res.send({ success: true, message: "Successfully joined event and updated user data." });
         } else {
@@ -78,7 +76,52 @@ async function run() {
         res.status(500).send({ error: "Failed to join event." });
       }
     });
-    
+
+    // === GET EVENT BY ID ===
+    app.get('/event/:id', async (req, res) => {
+      const eventId = req.params.id;
+
+      try {
+        const event = await eventCollection.findOne({ 
+          _id: new ObjectId(eventId) 
+        });
+
+        if (!event) {
+          return res.status(404).send({ message: "Event not found" });
+        }
+
+        if (req.query.userUid) {
+          const user = await userCollection.findOne({ uid: req.query.userUid });
+          event.isAttending = user?.events?.includes(eventId) || false;
+        }
+
+        res.send(event);
+      } catch (error) {
+        console.error("Error fetching event:", error);
+        res.status(500).send({ error: "Failed to fetch event" });
+      }
+    });
+
+    // ✅ === GET JOINED EVENTS BY UID ===
+    app.get('/joined-events/:uid', async (req, res) => {
+      const uid = req.params.uid;
+
+      try {
+        const user = await userCollection.findOne({ uid });
+
+        if (!user || !user.events || user.events.length === 0) {
+          return res.send([]);
+        }
+
+        const objectIds = user.events.map(id => new ObjectId(id));
+        const joinedEvents = await eventCollection.find({ _id: { $in: objectIds } }).toArray();
+
+        res.send(joinedEvents);
+      } catch (error) {
+        console.error('Error fetching joined events:', error);
+        res.status(500).send({ error: 'Failed to fetch joined events.' });
+      }
+    });
 
     // === USER ROUTES ===
     app.post('/users', async (req, res) => {
