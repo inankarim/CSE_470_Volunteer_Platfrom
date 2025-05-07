@@ -122,6 +122,23 @@ async function run() {
         res.status(500).send({ error: 'Failed to fetch joined events.' });
       }
     });
+    app.post('/event/user-events', async (req, res) => {
+      const { eventIds } = req.body;
+    
+      if (!eventIds || !Array.isArray(eventIds)) {
+        return res.status(400).send({ error: 'eventIds must be an array' });
+      }
+    
+      try {
+        const objectIds = eventIds.map(id => new ObjectId(id));
+        const result = await eventCollection.find({ _id: { $in: objectIds } }).toArray();
+        res.send(result);
+      } catch (err) {
+        console.error('Error fetching user events:', err);
+        res.status(500).send({ error: 'Internal Server Error' });
+      }
+    });
+    
 
     // === USER ROUTES ===
     app.post('/users', async (req, res) => {

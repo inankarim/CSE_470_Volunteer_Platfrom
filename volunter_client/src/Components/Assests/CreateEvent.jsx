@@ -40,24 +40,22 @@ const CreateEvent = () => {
     <div>
       <Navbar></Navbar>
   
-    <div className="min-h-screen flex items-center justify-center bg-neutral px-4 py-8">
-      <div className="card w-full max-w-2xl bg-base-100 shadow-2xl">
-        <div className="card-body space-y-6">
-          <h2 className="text-3xl font-bold text-center text-primary-content">Create Volunteer Event</h2>
+      <div className="min-h-screen w-full flex items-center justify-center bg-neutral px-6 py-10">
+      <div className="w-full h-full bg-base-100 shadow-2xl rounded-lg p-10">
+        <div className="space-y-8">
+          <h2 className="text-4xl font-bold text-center text-primary-content">Create Volunteer Event</h2>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-6 text-xl text-base-content">
             {/* Title */}
             <div>
               <label className="label">
-                <span className="label-text text-lg text-base-content">Event Title</span>
+                <span className="label-text">Event Title</span>
               </label>
               <input
                 type="text"
                 name="title"
                 placeholder="e.g., Beach Cleanup"
-                className="input input-bordered w-full focus:outline-none focus:ring-2 focus:ring-primary"
-              
-               
+                className="input input-bordered w-full text-lg"
                 required
               />
             </div>
@@ -65,40 +63,37 @@ const CreateEvent = () => {
             {/* Description */}
             <div>
               <label className="label">
-                <span className="label-text text-lg text-base-content">Description</span>
+                <span className="label-text">Description</span>
               </label>
               <textarea
                 name="description"
-                className="textarea textarea-bordered w-full h-24"
+                className="textarea textarea-bordered w-full h-28 text-lg"
                 placeholder="Describe the purpose and tasks for this event"
                 required
               ></textarea>
             </div>
 
             {/* Date & Time */}
-            <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex flex-col md:flex-row gap-6">
               <div className="w-full">
                 <label className="label">
-                  <span className="label-text text-lg text-base-content">Date</span>
+                  <span className="label-text">Date</span>
                 </label>
                 <input
                   type="date"
                   name="date"
-                  className="input input-bordered w-full"
-                  
-                 
+                  className="input input-bordered w-full text-lg"
                   required
                 />
               </div>
-
               <div className="w-full">
                 <label className="label">
-                  <span className="label-text text-lg text-base-content">Time</span>
+                  <span className="label-text">Time</span>
                 </label>
                 <input
                   type="time"
                   name="time"
-                  className="input input-bordered w-full"
+                  className="input input-bordered w-full text-lg"
                   required
                 />
               </div>
@@ -107,15 +102,13 @@ const CreateEvent = () => {
             {/* Location */}
             <div>
               <label className="label">
-                <span className="label-text text-lg text-base-content">Location</span>
+                <span className="label-text">Location</span>
               </label>
               <input
                 type="text"
                 name="location"
                 placeholder="e.g., Central Park, NY"
-                className="input input-bordered w-full"
-               
-                
+                className="input input-bordered w-full text-lg"
                 required
               />
             </div>
@@ -123,27 +116,24 @@ const CreateEvent = () => {
             {/* Image Upload */}
             <div>
               <label className="label">
-                <span className="label-text text-lg text-base-content">Event Image / Banner</span>
+                <span className="label-text">Event Image / Banner</span>
               </label>
               <input
                 type="url"
                 name="image"
-                className="input input-bordered w-full"
-                
+                className="input input-bordered w-full text-lg"
               />
-              {/* s */}
-              <p className="text-sm text-gray-400 mt-1">Upload a banner or flyer (JPG/PNG)</p>
+              <p className="text-base text-gray-400 mt-1">Upload a banner or flyer (JPG/PNG)</p>
             </div>
 
             {/* Category */}
             <div>
               <label className="label">
-                <span className="label-text text-lg text-base-content">Category</span>
+                <span className="label-text">Category</span>
               </label>
               <select
                 name="category"
-                className="select select-bordered w-full"
-                
+                className="select select-bordered w-full text-lg"
                 required
               >
                 <option value="" disabled>Select a volunteer category</option>
@@ -157,11 +147,11 @@ const CreateEvent = () => {
             </div>
 
             {/* Submit */}
-            <div className="mt-4">
+            <div>
               <button
                 type="submit"
                 value="addevent"
-                className="btn btn-primary btn-block text-lg tracking-wide"
+                className="btn btn-primary btn-block text-xl tracking-wide"
               >
                 Create Event
               </button>
@@ -170,7 +160,7 @@ const CreateEvent = () => {
         </div>
       </div>
     </div>
-    </div>
+  </div>
   );
 };
 export default CreateEvent;
