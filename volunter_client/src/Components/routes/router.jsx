@@ -10,6 +10,7 @@ import AuthLayout from '../Layout/AuthLayout';
 import PrivateRoute from './PrivateRoute';
 import TeamDashboard from '../Team/TeamDashboard';
 import CommunityCreate from '../CommunityHelp/CommunityCreate';
+import Event from '../Users/Event';
 
 const router = createBrowserRouter([
     {
@@ -58,6 +59,18 @@ const router = createBrowserRouter([
         element:<Users></Users>,
         
     },
+    {
+        path: '/event/:id',
+        element: <Event></Event>,
+        loader: async ({ params }) => {
+          const res = await fetch(`http://localhost:3000/event/${params.id}`);
+          if (!res.ok) {
+            throw new Response("Event Not Found", { status: 404 });
+          }
+          return res.json();
+        }
+    },
+      
     {
         path:"auth",
         element:<AuthLayout></AuthLayout>,
