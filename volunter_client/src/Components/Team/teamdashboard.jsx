@@ -7,7 +7,7 @@ import Navbar from "../Layout/Navbar";
 const TeamDashboard = () => {
   const { dbUser } = useContext(AuthContext);
   const [team, setTeam] = useState(null);
-  const [users, setUsers] = useState([]); // All users
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -38,6 +38,7 @@ const TeamDashboard = () => {
       .then(() => Swal.fire("Success", "Team updated", "success"))
       .catch(() => Swal.fire("Error", "Failed to update team", "error"));
   };
+
   const handleSaveToBackend = (updatedTeam) => {
     fetch(`http://localhost:3000/team/leader/${dbUser.uid}`, {
       method: "PUT",
@@ -51,11 +52,12 @@ const TeamDashboard = () => {
       })
       .catch(() => Swal.fire("Error", "Failed to update team", "error"));
   };
+
   const handleRemoveMember = (uid) => {
     const updatedMembers = team.members.filter(m => m.uid !== uid);
     const updatedTeam = { ...team, members: updatedMembers };
     setTeam(updatedTeam);
-    handleSaveToBackend(updatedTeam);;
+    handleSaveToBackend(updatedTeam);
   };
 
   const handleAddMember = (uid) => {
@@ -69,8 +71,6 @@ const TeamDashboard = () => {
       handleSaveToBackend(updatedTeam);
     }
   };
-  
-  
 
   if (loading) return <p>Loading team...</p>;
   if (!team) return <p>You are not a team leader.</p>;
@@ -80,86 +80,83 @@ const TeamDashboard = () => {
   );
 
   return (
-    <div>
-     
-    <Navbar></Navbar>
-    <div className="max-w-3xl mx-auto p-6 bg-gray-50 rounded-2xl shadow-lg mt-10">
-      <h2 className="text-3xl font-bold mb-4">{team.teamName}</h2>
+    <div className="bg-gray-900 min-h-screen text-white">
+      <Navbar />
+      <div className="max-w-3xl mx-auto p-6 bg-gray-800 rounded-2xl shadow-lg mt-10">
+        <h2 className="text-3xl font-bold mb-4">{team.teamName}</h2>
 
-      <div className="mb-4">
-        <label className="block font-medium mb-1">Team Name</label>
-        <input
-          type="text"
-          value={team.teamName}
-          onChange={e => setTeam({ ...team, teamName: e.target.value })}
-          className="w-full p-2 border rounded"
-        />
+        <div className="mb-4">
+          <label className="block font-medium mb-1">Team Name</label>
+          <input
+            type="text"
+            value={team.teamName}
+            onChange={e => setTeam({ ...team, teamName: e.target.value })}
+            className="w-full p-2 border bg-gray-700 text-white rounded"
+          />
+        </div>
+
+        <div className="mb-4">
+          <label className="block font-medium mb-1">Team Image URL</label>
+          <input
+            type="text"
+            value={team.imageUrl}
+            onChange={e => setTeam({ ...team, imageUrl: e.target.value })}
+            className="w-full p-2 border bg-gray-700 text-white rounded"
+          />
+          {team.imageUrl && <img src={team.imageUrl} alt="Team" className="mt-2 w-40 h-40 object-cover rounded" />}
+        </div>
+
+        <div className="mb-6">
+          <h3 className="text-xl font-semibold mb-2">Current Members</h3>
+          {team.members.length === 0 ? (
+            <p className="text-gray-400">No members in the team yet.</p>
+          ) : (
+            <ul>
+              {team.members.map((m) => (
+                <li key={m.uid} className="flex justify-between items-center mb-1">
+                  {m.uname}
+                  <button
+                    onClick={() => handleRemoveMember(m.uid)}
+                    className="text-red-500 hover:underline text-sm"
+                  >
+                    Remove
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div className="mb-6">
+          <h3 className="text-xl font-semibold mb-2">Add New Member</h3>
+          {availableUsers.length === 0 ? (
+            <p className="text-gray-400">All users are already in the team.</p>
+          ) : (
+            <select
+              onChange={(e) => {
+                handleAddMember(e.target.value);
+                e.target.value = "";
+              }}
+              className="w-full p-2 bg-gray-700 text-white border rounded"
+              defaultValue=""
+            >
+              <option value="">Select member to add</option>
+              {availableUsers.map(u => (
+                <option key={u.uid} value={u.uid}>
+                  {u.uname} ({u.skills})
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+
+        <button
+          onClick={handleSave}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          Save Changes
+        </button>
       </div>
-
-      <div className="mb-4">
-        <label className="block font-medium mb-1">Team Image URL</label>
-        <input
-          type="text"
-          value={team.imageUrl}
-          onChange={e => setTeam({ ...team, imageUrl: e.target.value })}
-          className="w-full p-2 border rounded"
-        />
-        {team.imageUrl && <img src={team.imageUrl} alt="Team" className="mt-2 w-40 h-40 object-cover rounded" />}
-      </div>
-
-      {/* SECTION 1: Current Members */}
-      <div className="mb-6">
-        <h3 className="text-xl font-semibold mb-2">Current Members</h3>
-        {team.members.length === 0 ? (
-          <p className="text-gray-600">No members in the team yet.</p>
-        ) : (
-          <ul>
-            {team.members.map((m) => (
-              <li key={m.uid} className="flex justify-between items-center mb-1 text-black">
-                {m.uname}
-                <button
-                  onClick={() => handleRemoveMember(m.uid)}
-                  className="text-red-500 hover:underline text-sm"
-                >
-                  Remove
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      {/* SECTION 2: Add New Member */}
-      <div className="mb-6">
-        <h3 className="text-xl font-semibold mb-2">Add New Member</h3>
-        {availableUsers.length === 0 ? (
-          <p className="text-gray-600">All users are already in the team.</p>
-        ) : (
-          <select
-            onChange={(e) => {
-              handleAddMember(e.target.value);
-              e.target.value = ""; // reset dropdown after adding
-            }}
-            className="w-full p-2 border rounded"
-            defaultValue=""
-          >
-            <option value="">Select member to add</option>
-            {availableUsers.map(u => (
-              <option key={u.uid} value={u.uid}>
-                {u.uname} ({u.skills})
-              </option>
-            ))}
-          </select>
-        )}
-      </div>
-
-      <button
-        onClick={handleSave}
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-      >
-        Save Changes
-      </button>
-    </div>
     </div>
   );
 };
