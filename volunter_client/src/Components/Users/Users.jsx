@@ -19,10 +19,9 @@ const Users = () => {
 
   useEffect(() => {
     if (dbUser) {
-      console.log(' dbUser:', dbUser);
+      console.log('dbUser:', dbUser);
       setIsLoading(false);
 
-      ///////////////////
       if (dbUser.events && dbUser.events.length > 0) {
         fetchEvents(dbUser.events);
       } else {
@@ -31,7 +30,6 @@ const Users = () => {
     }
   }, [dbUser]);
 
-  ///////////////////////////
   const fetchEvents = async (eventIds) => {
     try {
       const response = await fetch('/api/events', {
@@ -49,8 +47,6 @@ const Users = () => {
       setEventsLoading(false);
     }
   };
-
-//////////////////////////////
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -71,9 +67,8 @@ const Users = () => {
   const lastName = dbUser?.lname || dbUser?.last_name || 'Last';
   const username = dbUser?.uname || dbUser?.user_name ||  'anonymous';
   const joinedDate = dbUser?.createdAt || dbUser?.created_at || dbUser?.creationTime || 'Unknown';
-  ///////////////////////////////////
   const eventCount = dbUser?.events?.length || 0;
-  const totalHours = eventCount * 6; 
+  const totalHours = eventCount * 6;
   const totalPoints = eventCount * 3;
 
   return (
@@ -84,7 +79,7 @@ const Users = () => {
         <ul className="space-y-5 text-lg">
           <li className="flex items-center space-x-3 hover:text-blue-400 cursor-pointer">
             <FaTachometerAlt />
-            <span>My Events</span>
+            <span><Link to='/myevent'>Joined Events</Link></span>
           </li>
           <li className="flex items-center space-x-3 hover:text-blue-400 cursor-pointer">
             <FaUsers />
@@ -92,7 +87,6 @@ const Users = () => {
           </li>
           <li className="flex items-center space-x-3 hover:text-blue-400 cursor-pointer">
             <FaHistory />
-            
             <span>Certificates</span>
           </li>
           <li className="flex items-center space-x-3 hover:text-blue-400 cursor-pointer">
