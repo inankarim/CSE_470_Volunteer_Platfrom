@@ -1,4 +1,4 @@
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const { MongoClient, ServerApiVersion } = require('mongodb');
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
@@ -22,17 +22,20 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect();
+    await client.connect(); // Connect once, keep alive
 
     const eventCollection = client.db('EventDB').collection('event');
     const userCollection = client.db('EventDB').collection('users');
     const teamsCollection = client.db('EventDB').collection('teams');
-    const requestCollection = client.db('EventDB').collection('request');
+    const requestCollection=client.db('EventDB').collection('request');
     const messageCollection = client.db('EventDB').collection('messages');
+// 👈 same DB as event
+ // 👈 New User Collection
 
     // === EVENT ROUTES ===
     app.post('/event', async (req, res) => {
       const newevent = req.body;
+      console.log("Received event:", newevent);
       const result = await eventCollection.insertOne(newevent);
       res.send(result);
     });
@@ -43,158 +46,219 @@ async function run() {
       res.send(result);
     });
 
-    // ✅ === JOIN EVENT ROUTE ===
-    app.post('/join-event', async (req, res) => {
-      const { eventId, userEmail, userUid } = req.body;
-    
-      if (!eventId || !userEmail || !userUid) {
-        return res.status(400).send({ error: "Missing eventId, userEmail, or userUid." });
-      }
-    
-      try {
-        // Add user to the event's joinedUsers array
-        const eventUpdateResult = await eventCollection.updateOne(
-          { _id: new ObjectId(eventId) },
-          { $addToSet: { joinedUsers: userUid } }  // Add user UID to the event's joinedUsers array
-        );
-    
-        if (eventUpdateResult.modifiedCount === 0) {
-          return res.status(404).send({ error: "Event not found or user already joined." });
-        }
-    
-        // Add the eventId to the user's event list
-        const userUpdateResult = await userCollection.updateOne(
-          { uid: userUid },
-          { $addToSet: { events: eventId } }  // Add eventId to the user's events list
-        );
-    
-        if (userUpdateResult.modifiedCount > 0) {
-          res.send({ success: true, message: "Successfully joined event and updated user data." });
-        } else {
-          res.status(500).send({ error: "Failed to update user's events list." });
-        }
-      } catch (error) {
-        console.error("Error joining event:", error);
-        res.status(500).send({ error: "Failed to join event." });
-      }
-    });
-    
-
     // === USER ROUTES ===
+    // Register a new user
     app.post('/users', async (req, res) => {
       const newUser = req.body;
       const result = await userCollection.insertOne(newUser);
       res.send(result);
+      // if (!name || !email || !password) {
+      //   return res.status(400).send({ error: 'All fields are required.' });
+      // }
+
+      // const existingUser = await userCollection.findOne({ email });
+      // if (existingUser) {
+      //   return res.status(409).send({ error: 'User already exists.' });
+      // }
+
+      // const result = await userCollection.insertOne({ name, email, password });
+      // res.send(result);
     });
 
+    // Get all users (for testing)
     app.get('/users', async (req, res) => {
       const cursor = userCollection.find();
       const result = await cursor.toArray();
       res.send(result);
     });
+    // Get a single user by Firebase UID
+      app.get('/users/uid/:uid', async (req, res) => {
+        const uid = req.params.uid;
+        try {
+          const user = await userCollection.findOne({ uid });
+          if (user) {
+            res.send(user);
+          } else {
+            res.status(404).send({ message: "User not found" });
+          }
+        } catch (error) {
+          res.status(500).send({ message: "Server error", error });
+        }
+      });
+    
 
-    app.get('/users/uid/:uid', async (req, res) => {
-      const uid = req.params.uid;
-      try {
-        const user = await userCollection.findOne({ uid });
-        if (user) res.send(user);
-        else res.status(404).send({ message: "User not found" });
-      } catch (error) {
-        res.status(500).send({ message: "Server error", error });
-      }
-    });
-
-    // === TEAM ROUTES ===
+    //==Team Routes == 
+    //Create a team
     app.post('/team', async (req, res) => {
       const newTeam = req.body;
+      console.log("Received event:", newTeam);
       try {
+        // Insert the new team
         const result = await teamsCollection.insertOne(newTeam);
+    
         if (result.insertedId) {
+          // Get all member UIDs
           const memberUids = newTeam.members.map(member => member.uid);
+    
+          // Update each user: add the team name to their profile
           const updateResult = await userCollection.updateMany(
             { uid: { $in: memberUids } },
-            { $addToSet: { teams: newTeam.teamName } }
+            { $addToSet: { teams: newTeam.teamName } }  // creates "teams" array if missing
           );
+    
+          console.log(`Updated ${updateResult.modifiedCount} user(s) with the team name.`);
+    
           res.send({ insertedId: result.insertedId, updatedUsers: updateResult.modifiedCount });
         } else {
           res.status(500).send({ error: 'Failed to create team' });
         }
       } catch (err) {
+        console.error('Error creating team:', err);
         res.status(500).send({ error: 'Internal server error' });
       }
     });
-
     app.get('/teams', async (req, res) => {
       const cursor = teamsCollection.find();
       const result = await cursor.toArray();
       res.send(result);
     });
+    const { ObjectId } = require('mongodb'); // Make sure this is at the top if not already
 
+    // Get a team by leader UID
     app.get('/team/leader/:uid', async (req, res) => {
       const leaderUid = req.params.uid;
+      console.log(leaderUid)
+
       try {
         const team = await teamsCollection.findOne({ leaderUid });
-        if (team) res.send(team);
-        else res.status(404).send({ message: 'No team found for this leader' });
-      } catch (err) {
-        res.status(500).send({ error: 'Internal server error' });
-      }
-    });
-
-    app.put('/team/leader/:uid', async (req, res) => {
-      const leaderUid = req.params.uid;
-      const { teamName, imageUrl, members } = req.body;
-
-      try {
-        const updateFields = {};
-        if (teamName) updateFields.teamName = teamName;
-        if (imageUrl) updateFields.imageUrl = imageUrl;
-        if (Array.isArray(members)) updateFields.members = members;
-
-        const result = await teamsCollection.updateOne(
-          { leaderUid },
-          { $set: updateFields }
-        );
-
-        if (result.matchedCount === 0) {
-          res.status(404).send({ message: 'Team not found' });
+        if (team) {
+          res.send(team);
         } else {
-          res.send(result);
+          res.status(404).send({ message: 'No team found for this leader' });
         }
       } catch (err) {
+        console.error("Failed to fetch team by leader:", err);
         res.status(500).send({ error: 'Internal server error' });
       }
     });
+    //Update team
+    // Update a team by leaderUid
+    app.put('/team/leader/:uid', async (req, res) => {
+    const leaderUid = req.params.uid;
+    const { teamName, imageUrl, members } = req.body;
 
-    // === REQUEST ROUTES ===
-    app.post('/request', async (req, res) => {
-      try {
+    try {
+      const updateFields = {};
+      if (teamName) updateFields.teamName = teamName;
+      if (imageUrl) updateFields.imageUrl = imageUrl;
+      if (Array.isArray(members)) updateFields.members = members;
+
+      const result = await teamsCollection.updateOne(
+        { leaderUid },
+        { $set: updateFields }
+      );
+
+      if (result.matchedCount === 0) {
+        res.status(404).send({ message: 'Team not found' });
+      } else {
+        res.send(result);
+      }
+    } catch (err) {
+      console.error("Failed to update team:", err);
+      res.status(500).send({ error: 'Internal server error' });
+    }
+  });
+//....................................................................
+// Add user to a team (join team)
+app.post('/api/join-team', async (req, res) => {
+  const { userId, teamId, uname } = req.body;  // userId, teamId, and user name from the request body
+  
+  try {
+    // Find the team by teamId
+    const team = await teamsCollection.findOne({ _id: new ObjectId(teamId) });
+    if (!team) {
+      return res.status(404).json({ message: 'Team not found' });
+    }
+
+    // Check if the user is already a member of the team
+    if (team.members.some(member => member.uid === userId)) {
+      return res.status(400).json({ message: 'User is already a member of this team' });
+    }
+
+    // Add the user to the team's members array
+    await teamsCollection.updateOne(
+      { _id: new ObjectId(teamId) },
+      { $push: { members: { uid: userId, uname: uname } } }  // Push the user's UID and username to the team members array
+    );
+
+    // Add the teamId to the user's teams array
+    await userCollection.updateOne(
+      { uid: userId },
+      { $addToSet: { teams: teamId } }  // Add the teamId to the user's teams array (no duplicates)
+    );
+
+    res.status(200).json({ message: 'User joined the team successfully' });
+  } catch (err) {
+    console.error('Error joining team:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Get all teams the user has joined
+app.get('/api/user/:userId/teams', async (req, res) => {
+  const { userId } = req.params;  // Get the userId from the request params
+
+  try {
+    // Find the user by userId and get their list of teams
+    const user = await userCollection.findOne({ uid: userId });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Return the user's teams array
+    res.status(200).json(user.teams || []);
+  } catch (err) {
+    console.error('Error fetching user teams:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+
+
+  //Request of Backend
+  app.post('/request', async (req, res) => {
+    try {
         const newReq = req.body;
         if (!newReq.title || !newReq.description) {
-          return res.status(400).send({ error: "Title and description are required." });
+            return res.status(400).send({ error: "Title and description are required." });
         }
 
         newReq.createdAt = new Date();
         const result = await requestCollection.insertOne(newReq);
         res.send(result);
-      } catch (error) {
+    } catch (error) {
+        console.error("Error inserting request:", error);
         res.status(500).send({ error: "Failed to create request" });
-      }
-    });
-
-    app.get('/request', async (req, res) => {
-      try {
+    }
+  });
+  app.get('/request', async (req, res) => {
+    try {
         const requests = await requestCollection
-          .find({})
-          .sort({ createdAt: -1 })
-          .toArray();
-        res.send(requests);
-      } catch (error) {
-        res.status(500).send({ error: "Failed to fetch requests" });
-      }
-    });
+            .find({})
+            .sort({ createdAt: -1 }) // newest first
+            .toArray();
 
-    // === MESSAGE ROUTES ===
+        res.send(requests);
+    } catch (error) {
+        console.error("Error fetching requests:", error);
+        res.status(500).send({ error: "Failed to fetch requests" });
+    }
+  });
+
+
+  // === MESSAGE ROUTES ===
+
+    // POST a message to a post
     app.post('/messages', async (req, res) => {
       const { messageText, userId, userName, postId } = req.body;
 
@@ -214,27 +278,35 @@ async function run() {
         const result = await messageCollection.insertOne(newMessage);
         res.send(result);
       } catch (error) {
+        console.error("Error saving message:", error);
         res.status(500).send({ error: 'Internal server error' });
       }
     });
+   //Get a message to a post
+   
 
-    app.get('/messages/:postId', async (req, res) => {
-      const { postId } = req.params;
+   app.get('/messages/:postId', async (req, res) => {
+     const { postId } = req.params;
+   
+     try {
+       const messages = await messageCollection.find({ postId }).toArray();
+   
+       // Convert MongoDB internal types to plain JS
+       const sanitizedMessages = messages.map(msg => ({
+         ...msg,
+         _id: msg._id.toString(),
+         timestamp: msg.timestamp instanceof Date ? msg.timestamp.toISOString() : msg.timestamp
+       }));
+   
+       res.json(sanitizedMessages);
+     } catch (err) {
+       console.error(err);
+       res.status(500).json({ error: "Failed to fetch messages" });
+     }
+   });
+   
 
-      try {
-        const messages = await messageCollection.find({ postId }).toArray();
 
-        const sanitizedMessages = messages.map(msg => ({
-          ...msg,
-          _id: msg._id.toString(),
-          timestamp: msg.timestamp instanceof Date ? msg.timestamp.toISOString() : msg.timestamp
-        }));
-
-        res.json(sanitizedMessages);
-      } catch (err) {
-        res.status(500).json({ error: "Failed to fetch messages" });
-      }
-    });
 
     // Optional: Ping to confirm connection
     await client.db("admin").command({ ping: 1 });
