@@ -6,6 +6,8 @@ import CreateEvent from '../Assests/CreateEvent';
 import SignUp from '../Logs/SignUp';
 import Team from '../Team/Team';
 import Users from '../Users/Users';
+
+import Settings from '../Users/Settings';
 import AuthLayout from '../Layout/AuthLayout';
 import PrivateRoute from './PrivateRoute';
 import TeamDashboard from '../Team/TeamDashboard';
@@ -57,6 +59,12 @@ const router = createBrowserRouter([
     {
         path:'/users',
         element:<Users></Users>,
+        
+    },
+    {
+        path:'/user_update',
+        element: <Settings></Settings>
+          
         
     },
     {

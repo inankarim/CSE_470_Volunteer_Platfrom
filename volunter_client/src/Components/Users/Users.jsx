@@ -69,9 +69,9 @@ const Users = () => {
 
   const firstName = dbUser?.fname || dbUser?.first_name || 'First';
   const lastName = dbUser?.lname || dbUser?.last_name || 'Last';
-  const username = dbUser?.username || dbUser?.user_name || dbUser?.email?.split('@')[0] || 'anonymous';
+  const username = dbUser?.uname || dbUser?.user_name ||  'anonymous';
   const joinedDate = dbUser?.createdAt || dbUser?.created_at || dbUser?.creationTime || 'Unknown';
-  ///////////////////////////
+  ///////////////////////////////////
   const eventCount = dbUser?.events?.length || 0;
   const totalHours = eventCount * 6; 
   const totalPoints = eventCount * 3;
@@ -97,7 +97,10 @@ const Users = () => {
           </li>
           <li className="flex items-center space-x-3 hover:text-blue-400 cursor-pointer">
             <FaCog />
-            <span>Settings</span>
+
+
+          
+            <span><Link to='/user_update'>Settings</Link></span>
           </li>
         </ul>
       </div>
