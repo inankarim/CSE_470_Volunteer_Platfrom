@@ -9,6 +9,9 @@ const port = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+///////////////////////////////////////////////
+app.use('/uploads', express.static('uploads'));  // Serve the uploaded images
+
 
 // MongoDB URI and Client
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.utzib.mongodb.net/?appName=Cluster0`;
@@ -163,6 +166,113 @@ async function run() {
         res.status(500).send({ message: "Server error", error });
       }
     });
+////////////////////////////////////////////////////
+// USER Update part!
+app.get('/users/:uid', async (req, res) => {
+  const uid = req.params.uid;
+  const user = await userCollection.findOne({ uid });
+
+  if (!user) {
+    return res.status(404).json({ success: false, error: "User not found" });
+  }
+
+  res.json({ success: true, data: user });
+});
+
+// Update username and skills///////////////
+app.put('/users/:uid', async (req, res) => {
+  const uid = req.params.uid;
+
+  try {
+    // Collect updates from the request body
+    const updates = {
+      ...(req.body.uname && { uname: req.body.uname }),  // Update uname if provided
+      ...(req.body.skills && { skills: req.body.skills }),  // Update skills if provided
+      ...(req.body.imageUrl && { imageUrl: req.body.imageUrl })  // Update imageUrl if provided
+    };
+
+    // If no valid fields to update, return an error
+    if (Object.keys(updates).length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: "No valid fields provided for update"
+      });
+    }
+
+    // Perform the update in MongoDB
+    const result = await userCollection.updateOne(
+      { uid },  // Find user by uid
+      { $set: updates }  // Set the updated fields
+    );
+
+    // Check if user was found and updated
+    if (result.matchedCount === 0) {
+      return res.status(404).json({
+        success: false,
+        error: "User not found"
+      });
+    }
+
+    // Return the success response
+    res.json({
+      success: true,
+      modifiedCount: result.modifiedCount
+    });
+
+  } catch (error) {
+    console.error("Update error:", error);
+    res.status(500).json({
+      success: false,
+      error: "Internal server error"
+    });
+  }
+});
+
+
+// Setup multer for file storage
+const multer = require('multer');
+const path = require('path');
+
+// Set up multer storage
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/');  // Define the folder for uploads
+  },
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname);  // Get file extension
+    cb(null, `${Date.now()}${ext}`);  // Give a unique name to the file
+  }
+});
+
+const upload = multer({ storage: storage });  // Initialize multer with storage options
+
+// Handle image upload and update user's image URL
+app.post('/users/upload-image/:uid', upload.single('image'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded' });
+  }
+
+  const imageUrl = `http://localhost:${port}/uploads/${req.file.filename}`;  // URL for the image
+
+  try {
+    const result = await userCollection.updateOne(
+      { uid: req.params.uid },
+      { $set: { imageUrl } }  // Update the user's image URL in the database
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({ success: true, imageUrl });  // Return the updated image URL
+  } catch (error) {
+    console.error('Image upload failed:', error);
+    res.status(500).json({ error: 'Failed to upload image' });
+  }
+});
+
+/////////////////////////////////////////////////
+
 
     // === TEAM ROUTES ===
     app.post('/team', async (req, res) => {
