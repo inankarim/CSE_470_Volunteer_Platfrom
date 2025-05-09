@@ -6,12 +6,10 @@ import Navbar from './Components/Layout/Navbar';
 import { useEffect, useState } from 'react';
 import TeamCard from './Components/Team/TeamCard';
 
-
 function App() {
   const loadedEvents = useLoaderData();
   const [events, setEvents] = useState(loadedEvents);
   const [searchTerm, setSearchTerm] = useState('');
-  //write a fetch code for teams here then
   const [teams, setTeams] = useState([]); // State to store the list of teams
   const [loading, setLoading] = useState(true); // State to handle loading state
 
@@ -72,21 +70,23 @@ function App() {
           }
         </div>
 
-        <div className='grid grid-cols-3 gap-4 '>
-        {
-            teams
-              .map(team => (
-                <TeamCard key={team._id} team={team} setTeams={setTeams} />
-              ))
-          } 
+        <div className="mt-10 text-2xl font-semibold text-center">Teams</div>
+        
+        {/* Teams display */}
+        <div className='grid grid-cols-3 gap-4'>
+          {teams
+  .filter(team => team.privacy === 'public') // 🔒 Only public teams
+  .map(team => (
+    <TeamCard key={team._id} team={team} setTeams={setTeams} />
+  ))
 
+          }
         </div>
-
 
         {/* footer */}
       </div>
     </>
   );
 }
-export default App;
 
+export default App;

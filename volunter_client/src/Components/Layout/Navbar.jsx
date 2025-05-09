@@ -33,16 +33,14 @@ const Navbar = () => {
     }, [dbUser]);
 
     const items = <>
-                    <li className='ml-2'><Link to='/'>Home</Link> </li>
-                    {!user && (<li className='ml-2'><Link to='/auth/signup'>Register</Link></li>)}        
-                    {/* <li className='ml-2'><Link>Volunteer</Link> </li> */}
-                    <li className='ml-2'><Link to='/event'>Volunteer Events</Link> </li>
-                    <li className='ml-2'><Link to='/team_crt'> Team</Link> </li>
-                    <li className='ml-2'><Link to='/comm'> Commiunity</Link> </li>
-                    {isTeamLeader && (<li className='ml-2'><Link to='/teamdash'>Team Dashboard</Link> </li>)}
-
-
-    </>
+    <li className='ml-2'><Link to='/'>Home</Link></li>
+    {!user && <li className='ml-2'><Link to='/auth/signup'>Register</Link></li>}
+    <li className='ml-2'><Link to='/event'>Volunteer Events</Link></li>
+    {!isTeamLeader && <li className='ml-2'><Link to='/team_crt'>Create Team</Link></li>}
+    <li className='ml-2'><Link to='/comm'>Community</Link></li>
+    {isTeamLeader && <li className='ml-2'><Link to='/teamdash'>Team Dashboard</Link></li>}
+  </>;
+  
     return (
         <div>
             <div className="navbar bg-base-100">

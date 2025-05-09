@@ -61,7 +61,7 @@ const MyEvent = () => {
           </div>
         )}
       </div>
-      <button className='btn w-60 bg-slate-200s text-black'><Link to="/users">Back</Link></button>
+      <button className='btn w-60 bg-slate-200s text-white'><Link to="/users">Back</Link></button>
     </div>
   );
 };

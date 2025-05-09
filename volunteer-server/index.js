@@ -275,6 +275,9 @@ app.post('/users/upload-image/:uid', upload.single('image'), async (req, res) =>
 
 
     // === TEAM ROUTES ===
+
+
+
     app.post('/team', async (req, res) => {
       const newTeam = req.body;
       try {
@@ -337,37 +340,41 @@ app.post('/users/upload-image/:uid', upload.single('image'), async (req, res) =>
     });
     //...............................................................
     // Add user to a team (join team)
-app.post('/api/join-team', async (req, res) => {
-  const { userId, teamId, uname } = req.body;  // userId and teamId from request body
-  
-  try {
-    // Find the team by teamId
-    const team = await teamsCollection.findOne({ _id: new ObjectId(teamId) });
-    if (!team) {
-      return res.status(404).json({ message: 'Team not found' });
-    }
-
-    // Check if the user is already a member of the team
-    if (team.members.some(member => member.uid === userId)) {
-      return res.status(400).json({ message: 'User is already a member of this team' });
-    }
 
     // Add the user to the team's members array
-    await teamsCollection.updateOne(
+// backend/index.js
+app.post('/join-team', async (req, res) => {
+  const { teamId, userEmail, userId, userName } = req.body;
+
+  if (!teamId || !userEmail || !userId || !userName) {
+    return res.status(400).send({ error: "Missing required fields." });
+  }
+
+  try {
+    // Add to team
+    const teamUpdateResult = await teamsCollection.updateOne(
       { _id: new ObjectId(teamId) },
-      { $push: { members: { uid: userId, uname: uname } } }  // Push the user's UID and username to the team members array
+      { $addToSet: { members: { uid: userId, uname: userName } } }
     );
 
-    // Add the teamId to the user's teams array
-    await userCollection.updateOne(
+    // Add to user
+    const userUpdateResult = await userCollection.updateOne(
       { uid: userId },
-      { $addToSet: { teams: teamId } }  // Add the teamId to the user's teams array (no duplicates)
+      { $addToSet: { teams: teamId } } // Storing team ID here
     );
 
-    res.status(200).json({ message: 'User joined the team successfully' });
+    if (teamUpdateResult.modifiedCount === 0) {
+      return res.status(404).send({ error: "Team not found or already joined." });
+    }
+
+    if (userUpdateResult.modifiedCount > 0) {
+      return res.send({ success: true, message: "Successfully joined the team!" });
+    } else {
+      return res.status(500).send({ error: "Failed to update user record." });
+    }
   } catch (err) {
-    console.error('Error joining team:', err);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error("Join team error:", err);
+    res.status(500).send({ error: "Server error while joining team." });
   }
 });
 

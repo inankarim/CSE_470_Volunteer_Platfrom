@@ -17,6 +17,7 @@
     "@mui/material": "^7.0.2",
     "daisyui": "^5.0.27",
     "firebase": "^11.6.1",
+    "firebase-tools": "^14.3.0",
     "icons": "^1.0.0",
     "install": "^0.13.0",
     "localforage": "^1.10.0",
