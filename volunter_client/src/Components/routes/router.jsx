@@ -10,7 +10,7 @@ import Users from '../Users/Users';
 import Settings from '../Users/Settings';
 import AuthLayout from '../Layout/AuthLayout';
 import PrivateRoute from './PrivateRoute';
-import TeamDashboard from '../Team/TeamDashboard';
+import Teamdashboard from '../Team/teamdashboard';
 import CommunityCreate from '../CommunityHelp/CommunityCreate';
 import Event from '../Users/Event';
 import MyEvent from '../Users/Myevent';
@@ -53,7 +53,7 @@ const router = createBrowserRouter([
         path:'/teamdash',
         element:(
             <PrivateRoute>
-                <TeamDashboard></TeamDashboard>
+                <Teamdashboard></Teamdashboard>
             </PrivateRoute>
         )
     },

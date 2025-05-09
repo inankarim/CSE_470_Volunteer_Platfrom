@@ -1,10 +1,9 @@
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../routes/AuthProviders";
 import Swal from "sweetalert2";
-import { PiNumberSquareFiveLight } from "react-icons/pi";
 import Navbar from "../Layout/Navbar";
 
-const TeamDashboard = () => {
+const Teamdashboard = () => {
   const { dbUser } = useContext(AuthContext);
   const [team, setTeam] = useState(null);
   const [users, setUsers] = useState([]);
@@ -22,6 +21,7 @@ const TeamDashboard = () => {
         setUsers(usersData);
         setLoading(false);
       })
+    
       .catch(err => {
         console.error("Failed to load data:", err);
         setLoading(false);
@@ -161,4 +161,4 @@ const TeamDashboard = () => {
   );
 };
 
-export default TeamDashboard;
+export default Teamdashboard;

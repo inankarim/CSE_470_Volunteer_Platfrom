@@ -16,7 +16,7 @@ const Users = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [userEvents, setUserEvents] = useState([]);
   const [eventsLoading, setEventsLoading] = useState(true);
-
+  const [isTeamLeader, setIsTeamLeader] = useState(false);
   useEffect(() => {
     if (dbUser) {
       console.log('dbUser:', dbUser);
@@ -29,6 +29,21 @@ const Users = () => {
       }
     }
   }, [dbUser]);
+  useEffect(() => {
+          if (!dbUser?.uid) return;
+  
+          fetch(`http://localhost:3000/team/leader/${dbUser.uid}`)
+          .then(res => res.json())
+          .then(data => {
+              // If data is valid and matches leaderUid, consider user a team leader
+              if (data?.leaderUid === dbUser.uid) {
+              setIsTeamLeader(true);
+              }
+          })
+          .catch(err => {
+              console.error('Error checking team leader:', err);
+          });
+      }, [dbUser]);
 
   const fetchEvents = async (eventIds) => {
     try {
@@ -81,10 +96,18 @@ const Users = () => {
             <FaTachometerAlt />
             <span><Link to='/myevent'>Joined Events</Link></span>
           </li>
-          <li className="flex items-center space-x-3 hover:text-blue-400 cursor-pointer">
-            <FaUsers />
-            <span><Link to='/team_crt'> Team</Link></span>
-          </li>
+    
+          
+            <li className="flex items-center space-x-3 hover:text-blue-400 cursor-pointer">
+  <FaUsers />
+  {isTeamLeader ? (
+    <span><Link to='/teamdash'>Team Dashboard</Link></span>
+  ) : (
+    <span><Link to='/team_crt'>Create Team</Link></span>
+  )}
+</li>
+
+         
           <li className="flex items-center space-x-3 hover:text-blue-400 cursor-pointer">
             <FaHistory />
             <span>Certificates</span>
