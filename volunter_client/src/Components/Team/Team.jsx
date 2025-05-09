@@ -31,7 +31,7 @@ const Team = () => {
         if (!teamMembers.length || teamMembers.some(m => !m.uid)) {
             return Swal.fire({
                 title: "Validation Error",
-                text: "Please add at least one valid team member.",
+                text: "Please add at least  one valid team member.",
                 icon: "warning"
             });
         }

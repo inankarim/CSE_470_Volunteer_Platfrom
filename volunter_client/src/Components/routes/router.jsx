@@ -6,10 +6,14 @@ import CreateEvent from '../Assests/CreateEvent';
 import SignUp from '../Logs/SignUp';
 import Team from '../Team/Team';
 import Users from '../Users/Users';
+
+import Settings from '../Users/Settings';
 import AuthLayout from '../Layout/AuthLayout';
 import PrivateRoute from './PrivateRoute';
 import TeamDashboard from '../Team/TeamDashboard';
 import CommunityCreate from '../CommunityHelp/CommunityCreate';
+import Event from '../Users/Event';
+import MyEvent from '../Users/Myevent';
 
 const router = createBrowserRouter([
     {
@@ -58,6 +62,27 @@ const router = createBrowserRouter([
         element:<Users></Users>,
         
     },
+    {
+        path:'/user_update',
+        element: <Settings></Settings>
+    },
+    {
+        path:'myevent',
+        element:<MyEvent></MyEvent>,
+        
+    },
+    {
+        path: '/event/:id',
+        element: <Event></Event>,
+        loader: async ({ params }) => {
+          const res = await fetch(`http://localhost:3000/event/${params.id}`);
+          if (!res.ok) {
+            throw new Response("Event Not Found", { status: 404 });
+          }
+          return res.json();
+        }
+    },
+      
     {
         path:"auth",
         element:<AuthLayout></AuthLayout>,

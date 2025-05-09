@@ -6,6 +6,7 @@ import Navbar from './Components/Layout/Navbar';
 import { useEffect, useState } from 'react';
 import TeamCard from './Components/Team/TeamCard';
 
+
 function App() {
   const loadedEvents = useLoaderData();
   const [events, setEvents] = useState(loadedEvents);
@@ -70,6 +71,7 @@ function App() {
               ))
           }
         </div>
+
         <div className='grid grid-cols-3 gap-4 '>
         {
             teams
@@ -80,10 +82,11 @@ function App() {
 
         </div>
 
+
         {/* footer */}
       </div>
     </>
   );
 }
-
 export default App;
+

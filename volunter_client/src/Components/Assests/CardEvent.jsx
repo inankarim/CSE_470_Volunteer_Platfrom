@@ -14,6 +14,11 @@ const CardEvent = ({ event, setEvents }) => {
   const [open, setOpen] = useState(false);
 
   const handleOpen = () => setOpen(!open);
+  
+  const handleJoin = () => {
+    navigate(`/events/${_id}`); // This must match the route you just defined
+  };
+  
 
   return (
     <>

@@ -7,19 +7,46 @@ import {
   FaCertificate,
   FaCog
 } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 
 const Users = () => {
   const { dbUser } = useContext(AuthContext);
   const fileInputRef = useRef(null);
   const [profileImage, setProfileImage] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [userEvents, setUserEvents] = useState([]);
+  const [eventsLoading, setEventsLoading] = useState(true);
 
   useEffect(() => {
     if (dbUser) {
-      console.log(' dbUser:', dbUser);
+      console.log('dbUser:', dbUser);
       setIsLoading(false);
+
+      if (dbUser.events && dbUser.events.length > 0) {
+        fetchEvents(dbUser.events);
+      } else {
+        setEventsLoading(false);
+      }
     }
   }, [dbUser]);
+
+  const fetchEvents = async (eventIds) => {
+    try {
+      const response = await fetch('/api/events', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ eventIds }),
+      });
+      const data = await response.json();
+      setUserEvents(data);
+    } catch (error) {
+      console.error('Error fetching events:', error);
+    } finally {
+      setEventsLoading(false);
+    }
+  };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -38,8 +65,11 @@ const Users = () => {
 
   const firstName = dbUser?.fname || dbUser?.first_name || 'First';
   const lastName = dbUser?.lname || dbUser?.last_name || 'Last';
-  const username = dbUser?.username || dbUser?.user_name || dbUser?.email?.split('@')[0] || 'anonymous';
+  const username = dbUser?.uname || dbUser?.user_name ||  'anonymous';
   const joinedDate = dbUser?.createdAt || dbUser?.created_at || dbUser?.creationTime || 'Unknown';
+  const eventCount = dbUser?.events?.length || 0;
+  const totalHours = eventCount * 6;
+  const totalPoints = eventCount * 3;
 
   return (
     <div className="min-h-screen bg-[#0f172a] flex text-[18px] sm:text-[20px]">
@@ -49,23 +79,22 @@ const Users = () => {
         <ul className="space-y-5 text-lg">
           <li className="flex items-center space-x-3 hover:text-blue-400 cursor-pointer">
             <FaTachometerAlt />
-            <span>My Events</span>
+            <span><Link to='/myevent'>Joined Events</Link></span>
           </li>
           <li className="flex items-center space-x-3 hover:text-blue-400 cursor-pointer">
             <FaUsers />
-            <span>My Teams</span>
+            <span><Link to='/team_crt'> Team</Link></span>
           </li>
           <li className="flex items-center space-x-3 hover:text-blue-400 cursor-pointer">
             <FaHistory />
-            <span>Impact History</span>
-          </li>
-          <li className="flex items-center space-x-3 hover:text-blue-400 cursor-pointer">
-            <FaCertificate />
             <span>Certificates</span>
           </li>
           <li className="flex items-center space-x-3 hover:text-blue-400 cursor-pointer">
             <FaCog />
-            <span>Settings</span>
+
+
+          
+            <span><Link to='/user_update'>Settings</Link></span>
           </li>
         </ul>
       </div>
@@ -101,11 +130,11 @@ const Users = () => {
             </div>
             <div className="flex space-x-12 text-center">
               <div>
-                <div className="text-blue-400 text-3xl font-bold">42</div>
+                <div className="text-blue-400 text-3xl font-bold">{totalHours}</div>
                 <div className="text-gray-400 text-base">Hours</div>
               </div>
               <div>
-                <div className="text-green-400 text-3xl font-bold">210</div>
+                <div className="text-green-400 text-3xl font-bold">{totalPoints}</div>
                 <div className="text-gray-400 text-base">Points</div>
               </div>
             </div>
@@ -130,16 +159,49 @@ const Users = () => {
             </div>
           </div>
 
-          {/* Upcoming Events */}
+          {/* Events Section */}
           <div className="mt-12">
-            <h2 className="font-semibold text-xl mb-4">Upcoming Events</h2>
-            <div className="bg-[#334155] rounded-lg p-6 text-white">
-              <div className="font-semibold text-lg">Beach Cleanup Event</div>
-              <div className="text-gray-300 text-base">Saturday, March 15 • 9:00 AM</div>
-              <div className="text-gray-300 text-base">Venice Beach, Los Angeles</div>
-            </div>
+            <h2 className="font-semibold text-xl mb-4">Your Events ({eventCount})</h2>
+            {eventsLoading ? (
+              <div className="bg-[#334155] rounded-lg p-6 text-white">
+                <div className="text-gray-300">Loading events...</div>
+              </div>
+            ) : eventCount > 0 ? (
+              <div className="space-y-4">
+                {userEvents.map((event, index) => (
+                  <div key={index} className="bg-[#334155] rounded-lg p-6 text-white">
+                    <div className="font-semibold text-lg">{event.title}</div>
+                    <div className="text-gray-300 text-base mt-2">{event.description}</div>
+                    <div className="flex flex-wrap gap-4 mt-4">
+                      <div className="text-gray-300 text-base">
+                        <span className="font-medium">Location:</span> {event.location}
+                      </div>
+                      <div className="text-gray-300 text-base">
+                        <span className="font-medium">Date:</span> {new Date(event.date).toLocaleDateString()} at {event.time}
+                      </div>
+                      <div className="text-gray-300 text-base">
+                        <span className="font-medium">Category:</span> {event.category}
+                      </div>
+                    </div>
+                    {event.image && (
+                      <img 
+                        src={event.image} 
+                        alt={event.title} 
+                        className="mt-4 rounded-lg max-w-full h-auto max-h-40 object-cover"
+                      />
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-[#334155] rounded-lg p-6 text-white">
+                <div className="text-gray-300">No events registered yet</div>
+              </div>
+            )}
           </div>
+          
         </div>
+        
       </div>
     </div>
   );

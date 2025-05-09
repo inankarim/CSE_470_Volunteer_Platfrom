@@ -8,6 +8,7 @@ import {
   import { auth } from '../../firebase/firebase.init';
   
   export const AuthContext = createContext(null);
+  export const useAuthContext = () => React.useContext(AuthContext);
   
   const AuthProviders = ({ children }) => {
     const [user, setUser] = useState(null); // Firebase user
@@ -29,6 +30,17 @@ import {
     const logOut = () =>{
         return signOut(auth)
     }
+    // ////////////////////////////////In AuthProvider.jsx////////////
+    const updateAuthuser = (newData) => {
+
+      setUser(prev => ({ ...prev, ...newData }));
+    };
+  // ADD THIS: Update MongoDB user (dbUser) state
+    const updateDbUser = (newDbUserData) => {
+      setDbUser(prev => ({ ...prev, ...newDbUserData }));
+    };
+////////////////////////////////////////////////
+
     // Monitor auth state changes
     useEffect(() => {
       const unsubscribe = onAuthStateChanged(auth, currentUser => {
@@ -60,6 +72,8 @@ import {
       createUser,
       loginuser,
       logOut,
+      updateAuthuser,
+      updateDbUser
     };
   
     return (
@@ -69,5 +83,7 @@ import {
     );
   };
   
+ 
   export default AuthProviders;
+  
   
