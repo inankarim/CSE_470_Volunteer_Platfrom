@@ -1,6 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import Swal from "sweetalert2";
 import { AuthContext } from '../routes/AuthProviders';
+import { Link } from 'react-router-dom';
 
 const Settings = () => {
   const { user:authUser, updateAuthuser,updateDbUser } = useContext(AuthContext);
@@ -184,12 +185,12 @@ const Settings = () => {
 
   return (
     <div className="flex items-center justify-center text-white min-h-screen bg-base-200">
-      <div className="w-full max-w-md p-8 space-y-4 bg-black rounded-lg shadow-md">
+      <div className="w-full max-w-full p-8 space-y-4 bg-black rounded-lg shadow-md">
         <h2 className="text-2xl font-bold text-center">Profile Settings</h2>
         <form onSubmit={handleUpdate} className="space-y-4">
           <div className="flex flex-col items-center">
             <div className="avatar mb-4">
-              <div className="w-24 h-24 rounded-full ring ring-purple-600 ring-offset-base-100 ring-offset-2">
+              <div className="w-28 h-28 rounded-full ring ring-purple-600 ring-offset-base-100 ring-offset-2">
                 <img 
                   src={previewImage || userData.imageUrl || "https://via.placeholder.com/150"} 
                   alt="Profile" 
@@ -268,15 +269,17 @@ const Settings = () => {
             />
           </div>
 
-          <div>
+          <div className='flex flex-row justify-between '>
             <button 
               type="submit" 
-              className="btn w-full bg-purple-600 hover:bg-purple-700 text-white"
+              className="btn w-6/12 bg-purple-600 hover:bg-purple-700 text-white"
               disabled={loading}
             >
               {loading ? 'Updating...' : 'Update Profile'}
             </button>
+            <Link to="/users" className='btn bg-white text-black'>Back</Link>
           </div>
+          
         </form>
       </div>
     </div>

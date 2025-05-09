@@ -63,14 +63,12 @@ const router = createBrowserRouter([
         
     },
     {
-// <<<<<<< user_update
-//         path:'/user_update',
-//         element: <Settings></Settings>
-          
-// =======
-//         path:'myevent',
-//         element:<MyEvent></MyEvent>,
-// >>>>>>> main
+        path:'/user_update',
+        element: <Settings></Settings>
+    },
+    {
+        path:'myevent',
+        element:<MyEvent></MyEvent>,
         
     },
     {

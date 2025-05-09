@@ -3,6 +3,7 @@ import CardEvent from '../Assests/CardEvent';
 import { AuthContext } from '../routes/AuthProviders';
 import Navbar from '../Layout/Navbar';
 import UserEventCard from './UserEventCard';
+import { Link } from 'react-router-dom';
 
 const MyEvent = () => {
   const { dbUser } = useContext(AuthContext);
@@ -41,12 +42,12 @@ const MyEvent = () => {
   }, [dbUser]);
 
   return (
-    <div className="min-h-screen bg-gray-100 text-black">
+    <div className="min-h-screen bg-slate-700 text-black">
      <div className='text-white'><Navbar /></div>
       
 
       <div className="p-6">
-        <h2 className="text-2xl font-bold mb-4">My Joined Events</h2>
+        <h2 className="text-2xl font-bold mb-4 text-slate-50">My Joined Events</h2>
 
         {loading ? (
           <p className="text-center text-gray-500">Loading your events...</p>
@@ -60,6 +61,7 @@ const MyEvent = () => {
           </div>
         )}
       </div>
+      <button className='btn w-60 bg-slate-200s text-black'><Link to="/users">Back</Link></button>
     </div>
   );
 };
