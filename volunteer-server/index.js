@@ -225,6 +225,42 @@ async function run() {
         res.status(500).send({ error: 'Internal server error' });
       }
     });
+    //...............................................................
+    // Add user to a team (join team)
+app.post('/api/join-team', async (req, res) => {
+  const { userId, teamId, uname } = req.body;  // userId and teamId from request body
+  
+  try {
+    // Find the team by teamId
+    const team = await teamsCollection.findOne({ _id: new ObjectId(teamId) });
+    if (!team) {
+      return res.status(404).json({ message: 'Team not found' });
+    }
+
+    // Check if the user is already a member of the team
+    if (team.members.some(member => member.uid === userId)) {
+      return res.status(400).json({ message: 'User is already a member of this team' });
+    }
+
+    // Add the user to the team's members array
+    await teamsCollection.updateOne(
+      { _id: new ObjectId(teamId) },
+      { $push: { members: { uid: userId, uname: uname } } }  // Push the user's UID and username to the team members array
+    );
+
+    // Add the teamId to the user's teams array
+    await userCollection.updateOne(
+      { uid: userId },
+      { $addToSet: { teams: teamId } }  // Add the teamId to the user's teams array (no duplicates)
+    );
+
+    res.status(200).json({ message: 'User joined the team successfully' });
+  } catch (err) {
+    console.error('Error joining team:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 
     // === REQUEST ROUTES ===
     app.post('/request', async (req, res) => {
