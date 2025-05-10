@@ -5,7 +5,7 @@ import Navbar from "../Layout/Navbar";
 const CreateEvent = () => {
   const handleSubmit = e => {
     e.preventDefault();
-    const fornpm = e.target;
+    const form = e.target;
     const title = form.title.value;
     const description = form.description.value;
     const location = form.location.value;
